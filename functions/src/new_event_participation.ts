@@ -5,6 +5,12 @@ import {firestore} from "firebase-admin";
 import DocumentReference = firestore.DocumentReference;
 import FieldValue = firestore.FieldValue;
 
+interface ChallengeProgress {
+  challenge: DocumentReference;
+  progress: number;
+  current_streak: number;
+}
+
 export const onNewEventParticipation = onDocumentCreated("/event_participation/{epId}", async (event) => {
   logger.info("Creating event participation", {eventId: event.params.epId});
 
@@ -21,5 +27,22 @@ export const onNewEventParticipation = onDocumentCreated("/event_participation/{
   if (exists) {
     await getFirestore().collection("event_participation").doc(event.params.epId).delete();
     return;
+  }
+
+  const userProgress = await getFirestore().collection("user/" + event.data?.data()?.user?.id + "/private").doc("progress").get();
+  let challengeProgress: ChallengeProgress[] = userProgress.data()?.["challenge_progress"];
+  let hasChanges = false;
+  challengeProgress = challengeProgress.map((cp) => {
+    if (cp.challenge.id == "4vvBufrdkFNbChbrEfAf" || cp.challenge.id == "KyNbGMYV5U90IWand1KD") {
+      hasChanges = true;
+      cp.progress = cp.progress + 1;
+    }
+    return cp;
+  });
+
+  if (hasChanges) {
+    await userProgress.ref?.update({
+      "challenge_progress": challengeProgress,
+    });
   }
 });
