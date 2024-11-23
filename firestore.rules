@@ -26,7 +26,7 @@ service cloud.firestore {
             allow list: if isAuthed();
             allow create: if isAuthed()
                 && verifyFields(["title", "place", "organizer", "description", "tags", "time"], ["max_participants"])
-                && isRequester(request.resource.data.organizer.path);
+                && isRequester(request.resource.data.organizer);
         }
         match /event_participation/{participationId} {
             allow read: if isAuthed() && isRequester(resource.data.user);
