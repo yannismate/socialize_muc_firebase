@@ -1,11 +1,8 @@
 import {onDocumentCreated} from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
-import {initializeApp} from "firebase-admin/app";
 import {getFirestore} from "firebase-admin/firestore";
 import {firestore} from "firebase-admin";
 import DocumentReference = firestore.DocumentReference;
-
-initializeApp();
 
 interface ChallengeProgress {
   challenge: DocumentReference;
