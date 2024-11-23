@@ -1,0 +1,41 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  	function verifyFields(required, optional) {
+			let allAllowedFields = required.concat(optional);
+  		return request.resource.data.keys().hasAll(required) && 
+  			request.resource.data.keys().hasOnly(allAllowedFields);
+		}
+    function isAuthed() {
+    	return request.auth != null;
+    }
+    function isRequester(url) {
+    	return path('/databases/(database)/documents/user/' + request.auth.uid) == url;
+    }
+
+  	match /challenge/{challengeId} {
+    	allow read: if isAuthed();
+    }
+    match /event/{eventId} {
+    	allow read: if isAuthed();
+      allow create: if isAuthed() 
+      	&& verifyFields(["name", "place", "organizer", "description", "tags"], []) 
+        && isRequester(request.resource.data.organizer)
+    }
+    match /event_participation/{participationId} {
+    	allow read: if isAuthed() && isRequester(request.resource.data.user);
+      allow delete: if isAuthed() && isRequester(request.resource.data.user);
+      allow create: if isAuthed() 
+      	&& verifyFields(["name", "place", "organizer", "description", "tags"], []) 
+        && isRequester(request.resource.data.organizer)
+    }
+    match /user/{userId} {
+    	allow read: if request.auth.uid == userId;
+      allow create: if request.auth.uid == userId && verifyFields(["display_name"], []);
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
