@@ -15,10 +15,11 @@ service cloud.firestore {
     }
 
   	match /challenge/{challengeId} {
-    	allow read: if isAuthed();
+    	allow read,list: if isAuthed();
     }
     match /event/{eventId} {
-    	allow read: if isAuthed();
+      allow read: if isAuthed();
+      allow list: if isAuthed();
       allow create: if isAuthed() 
       	&& verifyFields(["name", "place", "organizer", "description", "tags"], []) 
         && isRequester(request.resource.data.organizer)
