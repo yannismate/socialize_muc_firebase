@@ -32,8 +32,11 @@ service cloud.firestore {
         && isRequester(request.resource.data.organizer)
     }
     match /user/{userId} {
-    	allow read: if request.auth.uid == userId;
-      allow create: if request.auth.uid == userId && verifyFields(["display_name"], []);
+        allow read: if isAuthed();
+        allow create: if request.auth.uid == userId && verifyFields(["display_name"], []);
+    }
+    match /user/{userId}/private/{privateDocId} {
+        allow read: if isAuthed() && request.auth.uid == userId;
     }
     match /{document=**} {
       allow read, write: if false;
