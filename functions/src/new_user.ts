@@ -38,7 +38,13 @@ export const onNewUser = onDocumentCreated("/user/{userId}", async (event) => {
 
   await event.data?.ref?.update({
     achievements: [],
-    level: 0,
-    challenge_progress: userChallengeProgress,
   });
+
+  await getFirestore()
+    .collection("user/" + event.params.userId + "/private")
+    .doc("progress")
+    .set({
+      level: 0,
+      challenge_progress: userChallengeProgress,
+    });
 });
