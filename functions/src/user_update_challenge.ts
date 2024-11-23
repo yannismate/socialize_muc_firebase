@@ -20,7 +20,6 @@ export const userChallengeUpdate = https.onCall(async (request: CallableRequest)
     return {WasCompleted: false, Error: "Not authenticated"};
   }
 
-  const uid = request.auth.uid;
   const challengeId = request.data["challengeId"]?.toString();
   const progress = request.data["progress"]?.toString();
   if (!challengeId || !progress) {
@@ -40,16 +39,23 @@ export const userChallengeUpdate = https.onCall(async (request: CallableRequest)
   const userProgress = await getFirestore().collection("user/" + request.auth.uid + "/private").doc("progress").get();
 
   let challengeProgress: ChallengeProgress[] = userProgress.data()?.["challenge_progress"] ?? [];
+  let wasUpdated = false;
+
   challengeProgress = challengeProgress.map((ch) => {
-    if (ch.challenge.id != uid || progress <= ch.progress) {
+    if (ch.challenge.id != challengeId || progress <= ch.progress) {
       return ch;
     }
+    wasUpdated = true;
     ch.progress = progress;
     if (ch.progress == challenge.data()?.["max_progress"] ?? 0) {
       ch.current_streak += 1;
     }
     return ch;
   });
+
+  if (!wasUpdated) {
+    return {WasCompleted: false, Error: "User does not have challenge with id " + challengeId};
+  }
 
   await userProgress.ref?.update({
     challenge_progress: challengeProgress,
