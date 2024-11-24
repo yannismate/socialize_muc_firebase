@@ -46,7 +46,7 @@ export const userChallengeUpdate = https.onCall(async (request: CallableRequest)
       return ch;
     }
     wasUpdated = true;
-    ch.progress = progress;
+    ch.progress = Number(progress);
     if (ch.progress == challenge.data()?.["max_progress"] ?? 0) {
       ch.current_streak += 1;
     }
